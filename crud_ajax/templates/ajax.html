@@ -1,0 +1,158 @@
+<script>
+
+  // this part is for insert the user data
+  $(document).ready(function () {
+    $(".show_error").addClass('d-none');
+    $('#btnsave').click(function () {
+      // console.log('click that button now '); this is for show that button has greatly work
+      output = '';
+      var uid = $('#userid').val();
+      var nm = $('#nameid').val();
+
+      var em = $('#emailid').val();
+
+      var pw = $('#passwordid').val();
+      var csr = $("input[name = csrfmiddlewaretoken]").val();
+
+      if (nm == '') {
+        $('.show_error').removeClass('d-none').html('enter the name field plzz');
+
+      }
+      else if (em == '') {
+        // console.log('enter the email plzz ');
+        $('.show_error').removeClass('d-none').html('enter the email id validate ');
+
+
+      }
+      else if (pw == '') {
+        // console.log('enter the password');
+        $('.show_error').removeClass('d-none').html('enter the pass word ');
+
+      }
+      else {
+
+        // console.log(nm);
+        // console.log(em);
+        // console.log(pw);
+        mydata = { userid: uid, name: nm, email: em, password: pw, csrfmiddlewaretoken: csr };
+        $.ajax({
+          url: "{% url 'save' %}",
+          method: 'POST',
+          data: mydata,
+          success: function (data) {
+            // console.log(data);
+
+            if (data.status == 'save') {
+              $('#msg').text('your data has been successfully submited');
+              $('#msg').show();
+              console.log('form submited successfuly');
+              x = data.user;
+              console.log(x);
+              for (i = 0; i < x.length; i++) {
+
+                output += "<tr><td>" + x[i].id + "</td><td>"
+                  + x[i].name + "</td><td>"
+                  + x[i].email + "</td><td>"
+                  + x[i].password + "</td><td> <input type='button' class='btn btn-warning btn-sm btn-edit'  value='edit' data-sid=" + x[i].id + ">  <input type='button' class='btn btn-danger btn-sm btn-del '  value='delete' data-sid=" + x[i].id + "></td>"
+
+              }
+              $('#tbody').html(output);
+              $('#userid').val('');
+
+              $("form")[0].reset();
+
+
+            }
+            if (data.status == 0) {
+              console.log("form didnt submit it plzz try again ");
+              $('#userid').val('');
+
+              $("form")[0].reset();
+
+
+            }
+          }
+        });
+      }
+    });
+  });
+
+  // delete the user data part
+  $('tbody').on('click', '.btn-del', '.model', function () {
+    // console.log("delete this data of user");
+    $('#modal_1').modal('show');
+
+
+    var id = $(this).attr('data-sid')
+    var csr = $("input[name = csrfmiddlewaretoken]").val();
+    var yes_1 = $('#yes').val();
+
+
+
+    // console.log(id);
+
+
+
+    mydata = { sid: id, csrfmiddlewaretoken: csr, };
+
+    mythis = this;
+    $('#yes').click(function () {
+      $.ajax({
+
+        url: "{% url 'delete' %}",
+        method: "POST",
+        data: mydata,
+        success: function (data) {
+          // console.log(data);
+          if (data.status == 1) {
+            // console.log(' this data has been deleted now ')
+
+            $('#msg').text('user data deleted now successfully ');
+            $('#msg').show();
+            $('#modal_1').removeClass('.modal_1');
+            $(mythis).closest("tr").fadeOut();
+          }
+          else if (data.status == 0) {
+            // console.log('unable to delete that data sorry...')
+            $('#msg').text('**your data has been unable plzz try again..');
+            $('#msg').show();
+
+          }
+        }
+      });
+
+    })
+
+
+  });
+
+
+  // edit the user data 
+  $('tbody').on('click', '.btn-edit', function () {
+    console.log("edit this user data");
+    var id = $(this).attr('data-sid')
+    var csr = $("input[name = csrfmiddlewaretoken]").val();
+
+    // console.log(id);
+
+    mydata = { sid: id, csrfmiddlewaretoken: csr };
+    $.ajax({
+      url: "{% url 'edit' %}",
+      method: "POST",
+      data: mydata,
+      success: function (data) {
+        // console.log(data);
+        $('#userid').val(data.id);
+        $('#nameid').val(data.name);
+        $('#emailid').val(data.email);
+        $('#passwordid').val(data.password);
+
+
+      }
+    })
+
+  })
+
+
+
+</script>
